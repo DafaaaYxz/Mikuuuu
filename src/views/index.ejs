@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"> <!-- Penting untuk HP -->
+    <title>Miku Nakano AI</title>
+    <style>
+        body { font-family: sans-serif; background: #e0f7fa; margin: 0; padding: 0; display: flex; flex-direction: column; height: 100vh; }
+        .header { background: #00bcd4; color: white; padding: 15px; text-align: center; font-weight: bold; }
+        #chat-container { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 10px; }
+        .msg { padding: 10px 15px; border-radius: 20px; max-width: 80%; font-size: 14px; word-wrap: break-word; }
+        .miku { background: white; align-self: flex-start; border: 1px solid #ddd; color: #444; }
+        .user { background: #00bcd4; align-self: flex-end; color: white; }
+        .controls { padding: 10px; background: white; display: flex; gap: 5px; border-top: 1px solid #ccc; }
+        input { flex: 1; padding: 10px; border-radius: 20px; border: 1px solid #ddd; outline: none; }
+        button { background: #008394; color: white; border: none; padding: 10px 15px; border-radius: 20px; }
+        .api-box { font-size: 12px; text-align: center; padding: 10px; color: #666; }
+    </style>
+</head>
+<body>
+    <div class="header">🎧 Miku Nakano (Termux Edition)</div>
+    <div id="chat-container">
+        <div class="msg miku">Umm... hai. Ada yang bisa kubantu?</div>
+    </div>
+    <div class="controls">
+        <input type="text" id="msg" placeholder="Ketik pesan..." autocomplete="off">
+        <button onclick="send()">Kirim</button>
+    </div>
+    <div class="api-box" onclick="makeKey()">
+        [Klik disini untuk buat API Key]
+    </div>
+
+    <script>
+        const chat = document.getElementById('chat-container');
+        
+        async function send() {
+            const val = document.getElementById('msg').value;
+            if(!val) return;
+            
+            // Tambah chat user
+            chat.innerHTML += `<div class="msg user">${val}</div>`;
+            document.getElementById('msg').value = '';
+            chat.scrollTop = chat.scrollHeight;
+
+            // Fetch ke server
+            const res = await fetch('/chat', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ message: val })
+            });
+            const data = await res.json();
+
+            // Tambah balasan Miku
+            chat.innerHTML += `<div class="msg miku">${data.reply}</div>`;
+            chat.scrollTop = chat.scrollHeight;
+        }
+
+        async function makeKey() {
+            const name = prompt("Masukkan nama untuk API Key:");
+            if(name) {
+                const res = await fetch('/new-key', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ name })
+                });
+                const data = await res.json();
+                alert("Key kamu: " + data.key);
+            }
+        }
+    </script>
+</body>
+</html>
